@@ -50,8 +50,8 @@ def points_by_axis(points):
 
 
 def find_3d_points(image1_path, image2_path):
-    img1 = cv2.imread(image1_path, 0)  # queryImage
-    img2 = cv2.imread(image2_path, 0)  # trainImage
+    img1 = cv2.imread(image1_path, cv2.IMREAD_GRAYSCALE)  # queryImage
+    img2 = cv2.imread(image2_path, cv2.IMREAD_GRAYSCALE)  # trainImage
 
     # Initial calibration matrix from camera
     init_calibration_matrix = np.array(
@@ -102,9 +102,9 @@ def find_3d_points(image1_path, image2_path):
     kp2, des2 = orb.compute(img2_distorted, kp2)
 
     # To draw the keypoints:
-    # img1kp = cv2.drawKeypoints(img1, kp1, None, color=(0, 255, 0), flags=0) #flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
+    #img1kp = cv2.drawKeypoints(img1, kp1, None, color=(0, 255, 0), flags=0) #flags = cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS
     # img2kp = cv2.drawKeypoints(img2, kp2, None, color=(0, 255, 0), flags=0)
-    # plt.imshow(img1kp), plt.show()
+    #plt.imshow(img1kp), plt.show()
     # plt.imshow(img2kp), plt.show()
 
     # Brute-force matcher object. crossCheck=True means that it has to match both ways
@@ -120,8 +120,8 @@ def find_3d_points(image1_path, image2_path):
     matches = sorted(matches, key=lambda x: x.distance)
 
     # To draw the first 20 matches:
-    # img_matches = cv2.drawMatches(img1_distorted, kp1, img2_distorted, kp2, matches[:20], None, flags = 2)
-    # plt.imshow(img_matches), plt.show()
+    #img_matches = cv2.drawMatches(img1_distorted, kp1, img2_distorted, kp2, matches[:], None, flags = 2)
+    #plt.imshow(img_matches), plt.show()
 
     # Extract coordinates
     points1 = extract_coordinates(matches, kp1, "queryIdx")
@@ -141,16 +141,16 @@ def find_3d_points(image1_path, image2_path):
     # Find camera2 position relative to camera1 (t is only in unit)
     _, R, t, _ = cv2.recoverPose(essential_matrix, points1, points2, calibration_matrix)
 
-    # Create projection matrices
+    # Create camera matrices
     M1 = np.hstack((np.eye(3, 3), np.zeros((3, 1))))
     M2 = np.hstack((R, t))
-    projection_matrix1 = np.dot(calibration_matrix, M1)
-    projection_matrix2 = np.dot(calibration_matrix, M2)
+    camera_matrix1 = np.dot(calibration_matrix, M1)
+    camera_matrix2 = np.dot(calibration_matrix, M2)
 
     # Compute 3D points
     points_3d = []
     for c1, c2 in zip(points1, points2):
-        point = cv2.triangulatePoints(projection_matrix1, projection_matrix2, c1, c2)
+        point = cv2.triangulatePoints(camera_matrix1, camera_matrix2, c1, c2)
         points_3d.append(point)
     points_3d = cv2.convertPointsFromHomogeneous(np.array(points_3d))
 

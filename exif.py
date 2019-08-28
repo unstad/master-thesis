@@ -26,8 +26,8 @@ def get_exif(image):
     return exif_data
 
 
-# Lat and long are given in rational64u. Returns lat long in degrees.
-# rational64u gives lat long in degrees, minutes and seconds in tuples with denominator or and nominator
+# Lat and long are given in rational. Returns lat long in degrees.
+# rational gives lat long in degrees, minutes and seconds in tuples with denominator or and nominator
 # Converts to degrees
 def lat_long_degrees(value):
     deg = value[0][0] / value[0][1]
